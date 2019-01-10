@@ -1,0 +1,40 @@
+version: '3.3'
+
+services:
+
+  mallrats:
+    image: nginx
+    volumes: 
+      - ../dist:/usr/share/nginx/html
+    ports:
+      - "8080:80"
+
+  site:
+    image: nginx
+    volumes: 
+      - ./site:/usr/share/nginx/html # You will need to provide your own site
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - access:/var/log/access/
+    ports:
+      - "80:80"
+
+  filebeat:
+    image: elastic/filebeat:6.5.4
+    volumes:
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - access:/var/log/access/
+    environment:
+      LOGSTASH_HOST: "logstash"
+      LOGSTASH_PORT: "5044"
+      ENCODING: "utf-8"
+
+  logstash:
+    image: logstash:5.6
+    volumes:
+      - ./logstash.conf:/etc/logstash/conf.d/logstash.conf
+    ports:
+      - 3232:3232
+    command: bash -c "logstash-plugin install logstash-output-websocket && logstash -f /etc/logstash/conf.d/logstash.conf"
+
+volumes:
+  access:
