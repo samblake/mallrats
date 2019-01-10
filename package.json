@@ -1,0 +1,29 @@
+{
+  "name": "mallrats",
+  "version": "1.0.0",
+  "description": "They're not there to shop. They're not there to work. They're just there.",
+  "main": "index.js",
+  "dependencies": {
+    "d3": "^5.7.0",
+    "d3-force": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/d3": "^5.5.0",
+    "@types/d3-force": "^1.1.1",
+    "live-server": "^1.2.1",
+    "npm-run-all": "^4.1.5",
+    "rollup": "^1.1.0",
+    "rollup-plugin-node-resolve": "^4.0.0"
+  },
+  "scripts": {
+    "build": "tsc && rollup -c",
+    "tsc:w": "tsc -w",
+    "rollup:w": "rollup -c -w",
+    "serve": "live-server dist",
+    "start": "npm-run-all --parallel serve tsc:w rollup:w",
+    "wss": "websocat -s 8181",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Samuel Blake Adams",
+  "license": "GNU"
+}
