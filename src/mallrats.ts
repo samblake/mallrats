@@ -124,7 +124,7 @@ document.addEventListener("DOMContentLoaded", function() {
         simulation.alpha(1).restart();
     }
     
-    const socket = new WebSocket('ws://localhost:8181');
+    const socket = new WebSocket('ws://localhost:3232');
 
     socket.addEventListener('open', (event) => {
         socket.send('I\'m just here');

@@ -1,0 +1,4 @@
+{ "user": "samblake", "link": "shop", "referrer": "home" }
+{ "user": "samblake", "link": "home", "referrer": "shop" }
+{ "user": "samblake", "link": "home", "referrer": "product" }
+{ "user": "samblake", "link": "product", "referrer": "shop" }

@@ -21,7 +21,7 @@
     "rollup:w": "rollup -c -w",
     "serve": "live-server dist",
     "start": "npm-run-all --parallel serve tsc:w rollup:w",
-    "wss": "websocat -s 8181",
+    "wss": "websocat -s 3232",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Samuel Blake Adams",

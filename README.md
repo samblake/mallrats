@@ -16,7 +16,7 @@ Then you can point your browser to:
 
 Run a server:
 
-    websocat -s 8181
+    websocat -s 3232
     
 Send some JSON:
 
