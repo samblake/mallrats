@@ -15,7 +15,7 @@ interface RatLink extends SimulationLinkDatum<RatNode> {
 
 interface Page {
     readonly user: string;
-    readonly link: string;
+    readonly request: string;
     readonly referrer: string;
 }
 
@@ -25,6 +25,8 @@ interface User {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
+
+    const decay = 10000;
 
     const users = new Map<string, User>();
 
@@ -93,13 +95,18 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Apply the general update pattern to the nodes.
         node = node.data<RatNode>(nodes, node => { return node.label });
-        node.exit().remove();
+
+        node.exit()
+            .transition().attr("r", node => { return 0 })
+            .remove();
+
         node = node.enter()
             .append("circle")
             .attr("r", node => { return node.count })
             .merge(node);
         
-        node.append("title")
+        node.enter()
+            .append("title")
             .text(node => node.label);
         
         // Apply the general update pattern to the links.
@@ -137,13 +144,16 @@ document.addEventListener("DOMContentLoaded", function() {
         console.log('Message from server ', event.data);
 
         const page = parse(event);
-        if (page == null) {
-            return;
+        if (page != null) {
+            addPage(page);
+            restart();
         }
+    });
 
+    function addPage(page: Page) {
         const entry: boolean = page.referrer == null;
         const user = getOrCreateUser(page);
-        const existingLink = findNode(page.link);
+        const existingLink = findNode(page.request);
         const existingRef = entry ? null : findNode(page.referrer);
 
         let newRef: RatNode;
@@ -151,7 +161,7 @@ document.addEventListener("DOMContentLoaded", function() {
             newRef = addRefNode(page, existingLink);
         }
 
-        const node = addNode(page.link, existingRef != null ? existingRef : newRef);
+        const node = addNode(page.request, existingRef != null ? existingRef : newRef);
         const link = page.referrer != null ? addLink(page, node) : null;
 
         user.node = node;
@@ -166,110 +176,108 @@ document.addEventListener("DOMContentLoaded", function() {
                 removeLink(link);
             }
             restart();
-        }, 30000);
+        }, decay);    
+    }
 
-        function getOrCreateUser(page: Page) {
-            const existingUser = users.get(page.user);
-            if (existingUser != null) {
-                return existingUser;
-            }
-
-            const user: User = { node: null, link: null }
-            users.set(page.user, user);
-            return user;
+    function getOrCreateUser(page: Page) {
+        const existingUser = users.get(page.user);
+        if (existingUser != null) {
+            return existingUser;
         }
 
-        function addRefNode(page: Page, buddy: RatNode) {
-            const node: RatNode = { 
-                label: page.referrer, 
-                count: 1,
-                entries: 0,
-                x: buddy != null ? buddy.x : width/2, 
-                y: buddy != null ? buddy.y : height/2
-            };
-            nodes.push(node);
+        const user: User = { node: null, link: null }
+        users.set(page.user, user);
+        return user;
+    }
+
+    function addRefNode(page: Page, buddy: RatNode) {
+        const node: RatNode = { 
+            label: page.referrer, 
+            count: 1,
+            entries: 0,
+            x: buddy != null ? buddy.x : width/2, 
+            y: buddy != null ? buddy.y : height/2
+        };
+        nodes.push(node);
+        return node;
+    }
+
+    function addNode(label: string, buddy: RatNode) {
+        const node = findNode(label);
+        if (node != null) {
+            node.count = node.count + 1;
+            if (buddy == null) {
+                node.entries++;
+            }
             return node;
         }
+        return createNode(label, buddy);
+    }
 
-        function addNode(label: string, buddy: RatNode) {
-            const node = findNode(label);
-            if (node != null) {
-                node.count = node.count + 1;
-                if (buddy == null) {
-                    node.entries++;
-                }
-                return node;
-            }
-            return createNode(label, buddy);
+    function createNode(label: string, buddy: RatNode) {
+        const node: RatNode = { 
+            label: label, 
+            count: 1, 
+            entries: buddy == null ? 1 : 0,
+            x: buddy != null ? buddy.x : width/2, 
+            y: buddy != null ? buddy.y : height/2
+        };
+        nodes.push(node);
+        return node;
+    }
+
+    function removeNode(node: RatNode, entry: boolean) {
+        if (entry && node.entries > 0) {
+            node.entries--;
         }
 
-        function createNode(label: string, buddy: RatNode) {
-            const node: RatNode = { 
-                label: label, 
-                count: 1, 
-                entries: buddy == null ? 1 : 0,
-                x: buddy != null ? buddy.x : width/2, 
-                y: buddy != null ? buddy.y : height/2
-            };
-            nodes.push(node);
-            return node;
+        if (node.count > 1) {
+            node.count = node.count - 1;
         }
-
-        function removeNode(node: RatNode, entry: boolean) {
-            if (entry && node.entries > 0) {
-                node.entries--;
-            }
-
-            if (node.count > 1) {
-                node.count = node.count - 1;
-            }
-            else {
-                nodes.splice(node.index, 1); 
-            }
+        else {
+            nodes.splice(node.index, 1); 
         }
+    }
 
-        function addLink(page: Page, to: RatNode) {
-            const link = findLink(page);
-            if (link != null) {
-                link.count++;
-                return link;
-            }
-
-            const from = findNode(page.referrer);
-            return createLink(from, to);
-        }
-
-        function createLink(from: RatNode, to: RatNode) {
-            const link: RatLink = { 
-                source: from, 
-                target: to, 
-                count: 1 
-            };
-            
-            links.push(link);
+    function addLink(page: Page, to: RatNode) {
+        const link = findLink(page);
+        if (link != null) {
+            link.count++;
             return link;
         }
 
-        function removeLink(link: RatLink) {
-            if (link.count > 1) {
-                link.count--;
-            }
-            else {
-                links.splice(link.index, 1); 
-            }
-        }
+        const from = findNode(page.referrer);
+        return createLink(from, to);
+    }
+
+    function createLink(from: RatNode, to: RatNode) {
+        const link: RatLink = { 
+            source: from, 
+            target: to, 
+            count: 1 
+        };
         
-        function findNode(label: string) {
-            return nodes.find((node) => node.label == label);
-        }
+        links.push(link);
+        return link;
+    }
 
-        function findLink(page: Page) {
-            return links.find((link) => (link.source.label == page.link && link.target.label == page.referrer)
-                || (link.source.label == page.referrer && link.target.label == page.link));
+    function removeLink(link: RatLink) {
+        if (link.count > 1) {
+            link.count--;
         }
+        else {
+            links.splice(link.index, 1); 
+        }
+    }
+    
+    function findNode(label: string) {
+        return nodes.find((node) => node.label == label);
+    }
 
-        restart();
-    });
+    function findLink(page: Page) {
+        return links.find((link) => (link.source.label == page.request && link.target.label == page.referrer)
+            || (link.source.label == page.referrer && link.target.label == page.request));
+    }
 
     var loaded = once(() => console.log('Page loaded - ' + width + 'x' + height))();
 });
