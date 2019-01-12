@@ -39,22 +39,29 @@ document.addEventListener("DOMContentLoaded", function() {
 
     const chartLayer = svg.append('g').classed('chartLayer', true);
 
-    const range = 10;
-    const nodes: RatNode[] = d3.range(0, range).map(d => { 
-        return { 
-            label: "l" + d, 
-            count: ~~d3.randomUniform(1, 5)(),
-            entries: ~~d3.randomUniform(1, 5)()
-        }
-    });
+    const nodes: RatNode[] = []; //createTestNodes();
+    const links: RatLink[] = []; //createTestLinks();
 
-    const links: RatLink[] = d3.range(0, range * 2).map(() =>  { 
-        return { 
-            source: nodes[~~d3.randomUniform(range)()], 
-            target: nodes[~~d3.randomUniform(range)()],
-            count: ~~d3.randomUniform(1, 5)()
-        } 
-    });
+    const range = 10;
+    function createTestNodes(): RatNode[]  {
+        return d3.range(0, range).map(d => { 
+            return { 
+                label: "l" + d, 
+                count: ~~d3.randomUniform(1, 5)(),
+                entries: ~~d3.randomUniform(1, 5)()
+            }
+        });    
+    }
+
+    function createTestLinks(): RatLink[]  {
+        return d3.range(0, range * 2).map(() =>  { 
+            return { 
+                source: nodes[~~d3.randomUniform(range)()], 
+                target: nodes[~~d3.randomUniform(range)()],
+                count: ~~d3.randomUniform(1, 5)()
+            } 
+        });
+    }
 
     //const color = d3.scaleOrdinal(d3.schemeCategory10);    
     svg.attr("width", width).attr("height", height)
@@ -89,7 +96,7 @@ document.addEventListener("DOMContentLoaded", function() {
         .selectAll("circle")
         .data<RatNode>(nodes);
   
-    restart();
+    //restart();
 
     function restart() {
 
@@ -278,8 +285,6 @@ document.addEventListener("DOMContentLoaded", function() {
         return links.find((link) => (link.source.label == page.request && link.target.label == page.referrer)
             || (link.source.label == page.referrer && link.target.label == page.request));
     }
-
-    var loaded = once(() => console.log('Page loaded - ' + width + 'x' + height))();
 });
 
 function once(fn: Function) { 
