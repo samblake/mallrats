@@ -112,8 +112,7 @@ document.addEventListener("DOMContentLoaded", function() {
             .attr("r", node => { return node.count })
             .merge(node);
         
-        node.enter()
-            .append("title")
+        node.append("title")
             .text(node => node.label);
         
         // Apply the general update pattern to the links.

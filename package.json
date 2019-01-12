@@ -16,7 +16,8 @@
     "rollup-plugin-node-resolve": "^4.0.0"
   },
   "scripts": {
-    "build": "npm-run-all --parallel tsc:w rollup:w",
+    "build": "tsc && rollup -c",
+    "watch": "npm-run-all --parallel tsc:w rollup:w",
     "tsc:w": "tsc -w",
     "rollup:w": "rollup -c -w",
     "serve": "live-server dist",
