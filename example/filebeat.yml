@@ -3,6 +3,21 @@ filebeat.inputs:
   enabled: true
   paths:
     - /var/log/access/*.log
+  tail_files: true
+  scan_frequency: 1s
+  max_backoff: 1s
+  backoff: 250ms
 
 output.logstash:
   hosts: ["logstash:5044"]
+
+pipeline:
+  batch:
+    size: 10
+    delay: 10
+
+processors:
+ - drop_event:
+     when:
+        regexp:
+           message: "\\.js$|\\.css$|\\.png$|\\.gif$|\\.jpg$|\\.svg$|\\.ico$|\\.ttf$|\\.map$"

@@ -8,6 +8,8 @@ services:
       - ../dist:/usr/share/nginx/html
     ports:
       - "8080:80"
+    depends_on:
+      - logstash
 
   site:
     image: nginx
@@ -23,6 +25,9 @@ services:
     volumes:
       - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
       - access:/var/log/access/
+    depends_on:
+      - logstash
+      - site
     environment:
       LOGSTASH_HOST: "logstash"
       LOGSTASH_PORT: "5044"

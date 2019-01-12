@@ -26,7 +26,7 @@ interface User {
 
 document.addEventListener("DOMContentLoaded", function() {
 
-    const decay = 10000;
+    const decay = 30 * 1000;
 
     const users = new Map<string, User>();
 
