@@ -16,7 +16,6 @@ services:
     volumes: 
       - ./site:/usr/share/nginx/html # You will need to provide your own site
       - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./default.conf:/etc/nginx/conf.d/default.conf
       - access:/var/log/access/
     ports:
       - "80:80"
