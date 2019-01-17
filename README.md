@@ -4,6 +4,8 @@ They're not there to shop. They're not there to work. They're just there.
 
 Realtime visualisation of user journeys.
 
+![Mallrats Screenshot](https://i.ibb.co/5GRYm81/mallrats.png)
+
 ## Requirements
 
 You will need npm, tsc and rollup installed globally. To run the Docker environment you will also need Docker Compose.
