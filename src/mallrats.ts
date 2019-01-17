@@ -39,10 +39,10 @@ document.addEventListener("DOMContentLoaded", function() {
 
     const chartLayer = svg.append('g').classed('chartLayer', true);
 
+    const range = 10;
     const nodes: RatNode[] = []; //createTestNodes();
     const links: RatLink[] = []; //createTestLinks();
 
-    const range = 10;
     function createTestNodes(): RatNode[]  {
         return d3.range(0, range).map(d => { 
             return { 
@@ -69,13 +69,17 @@ document.addEventListener("DOMContentLoaded", function() {
     chartLayer.attr("width", width).attr("height", height);
         
     var simulation = d3.forceSimulation<RatNode, RatLink>()
-        //.force("link", d3.forceLink<RatNode, RatLink>().strength((link, i, links) => link.count))
+        .force("link", d3.forceLink<RatNode, RatLink>().strength((link, i, links) => link.count))
+        
         .force("link", d3.forceLink<RatNode, RatLink>().id((node, i, data) => { return node.index+'' } ))
         .force("collide",d3.forceCollide<RatNode>( node => { return node.count ^ 2 } ).iterations(32) )
-        .force("charge", d3.forceManyBody<RatNode>().strength(-500))
+        //.force("charge", d3.forceManyBody<RatNode>().strength(-500))
         .force("center", d3.forceCenter<RatNode>(width / 2, height / 2))
+        .force("charge", d3.forceManyBody<RatNode>().strength(-500))
+        //.force("link", d3.forceLink(links).distance(100))    
         .force("x", d3.forceX<RatNode>())
         .force("y", d3.forceY<RatNode>())
+        .alphaTarget(1)
         .on("tick", () => {
             link.attr("x1", (d) => { return d.source.x; })
                 .attr("y1", (d) => { return d.source.y; })
@@ -114,6 +118,9 @@ document.addEventListener("DOMContentLoaded", function() {
         
         node.append("title")
             .text(node => node.label);
+
+        node.transition(d3.transition().duration(1500))
+            .attr("r", node => { return node.count * 5; });
         
         // Apply the general update pattern to the links.
         link = link.data<RatLink>(links, link => { return link.source + "-" + link.target;});
@@ -125,10 +132,8 @@ document.addEventListener("DOMContentLoaded", function() {
             .attr("stroke-width", link => link.count)
             .merge(link);
 
-        const transition = d3.transition().duration(750);
-
-        node.transition(transition)
-            .attr("r", node => { return node.count * 5; });
+        link.transition(d3.transition().duration(750))
+            .attr("stroke-width", link => link.count);
         
         // Update and restart the simulation.
         simulation.nodes(nodes);
@@ -143,8 +148,6 @@ document.addEventListener("DOMContentLoaded", function() {
         socket.send('I\'m just here');
         console.log('Connected to server');
     });
-
-    var i = 100;
 
     socket.addEventListener('message', (event: MessageEvent) => {
         console.log('Message from server ', event.data);
@@ -201,8 +204,8 @@ document.addEventListener("DOMContentLoaded", function() {
             label: page.referrer, 
             count: 1,
             entries: 0,
-            x: buddy != null ? buddy.x : width/2, 
-            y: buddy != null ? buddy.y : height/2
+            x: buddy != null ? buddy.x + ~~d3.randomUniform(10, 20)() : width/2, 
+            y: buddy != null ? buddy.y + ~~d3.randomUniform(10, 20)() : height/2
         };
         nodes.push(node);
         return node;
@@ -225,8 +228,8 @@ document.addEventListener("DOMContentLoaded", function() {
             label: label, 
             count: 1, 
             entries: buddy == null ? 1 : 0,
-            x: buddy != null ? buddy.x : width/2, 
-            y: buddy != null ? buddy.y : height/2
+            x: buddy != null ? buddy.x + ~~d3.randomUniform(10, 20)() : width/2, 
+            y: buddy != null ? buddy.y + ~~d3.randomUniform(10, 20)() : height/2
         };
         nodes.push(node);
         return node;
